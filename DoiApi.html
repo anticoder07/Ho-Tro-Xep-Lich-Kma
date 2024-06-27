@@ -1,56 +1,85 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thay đổi giá trị mảng mon</title>
-  </head>
-  <body>
-    <h1>Thay đổi giá trị mảng mon</h1>
-    <div id="currentMonDiv">
-      <p>Giá trị hiện tại:</p>
-      <pre id="currentMon"></pre>
-    </div>
-    <form id="monForm">
-      <div>
-        <label for="monData">Nhập dữ liệu mới (dữ liệu dạng JSON):</label>
-        <textarea id="monData" name="monData" rows="10" required></textarea>
-      </div>
-      <button type="submit">Cập nhật</button>
-    </form>
-
+    <title>Update Mon Array</title>
+    <style>
+      textarea {
+        width: 100%;
+        height: 200px; /* Adjust height as needed */
+        font-size: 14px;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+    </style>
+    <script src="./mon.js"></script>
     <script>
-      // Lấy dữ liệu mảng mon ban đầu
-      fetch("duongDanFileMonJs")
-        .then((response) => response.json())
-        .then((data) => {
-          const currentMon = data.mon;
-          document.getElementById("currentMon").textContent = JSON.stringify(
-            currentMon,
+      // Function to update mon array based on input
+      function updateMonArray() {
+        var inputData = document.getElementById("inputData").value;
+        try {
+          mon = JSON.parse(inputData); // Try parsing the input as JSON
+          saveMonArray(mon); // Save the updated mon array to mon.js
+          alert("Mon array updated successfully!");
+          // Update the displayed current value of mon
+          document.getElementById("currentValue").textContent = JSON.stringify(
+            mon,
             null,
             2
           );
-        })
-        .catch((error) => {
-          console.error(error);
-          alert("Có lỗi xảy ra khi lấy dữ liệu!");
-        });
-
-      const monForm = document.getElementById("monForm");
-      monForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const monData = document.getElementById("monData").value;
-
-        try {
-          const monMoi = JSON.parse(monData);
-          // Cập nhật mảng "mon" trong file "mon.js"
-          // ... (giống như phần JavaScript trước)
         } catch (error) {
-          alert("Dữ liệu JSON không hợp lệ!");
-          console.error(error);
+          alert("Invalid input data! Please enter valid JSON.");
         }
-      });
+      }
+
+      // Function to save mon array to mon.js
+      function saveMonArray(monArray) {
+        // Convert mon array to JSON string
+        var jsonMon = JSON.stringify(monArray, null, 2);
+        // Create a Blob object with the JSON string
+        var blob = new Blob([jsonMon], { type: "application/json" });
+        // Create a URL for the Blob object
+        var url = URL.createObjectURL(blob);
+
+        // Create a new anchor element
+        var a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        a.download = "mon.js"; // Set the filename to mon.js
+        document.body.appendChild(a);
+        a.click(); // Simulate a click on the anchor element to trigger download
+        window.URL.revokeObjectURL(url); // Revoke the URL object immediately after download
+      }
+
+      // Function to clear input and reset mon array to empty
+      function clearMonArray() {
+        mon = [];
+        document.getElementById("inputData").value = "";
+        document.getElementById("currentValue").textContent = "";
+        alert("Mon array cleared!");
+      }
+    </script>
+  </head>
+  <body>
+    <h2>Update Mon Array</h2>
+    <form>
+      <label for="inputData">Enter JSON Array:</label>
+      <textarea id="inputData" name="inputData"></textarea><br /><br />
+      <button type="button" onclick="updateMonArray()">Update Mon Array</button>
+      <button type="button" onclick="clearMonArray()">Clear Mon Array</button>
+    </form>
+    <hr />
+    <h3>Current Value of mon:</h3>
+    <pre id="currentValue"></pre>
+
+    <script>
+      // Display current value of mon array
+      document.getElementById("currentValue").textContent = JSON.stringify(
+        mon,
+        null,
+        2
+      );
     </script>
   </body>
 </html>

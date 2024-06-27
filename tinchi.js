@@ -521,7 +521,3 @@ function disablePopup(elem) {
   $("#popup-container").fadeOut().remove();
   $("#popup-content").fadeOut().remove();
 }
-
-function navigateToApiGuide() {
-  window.location.href = "HuongDanLayApi.html";
-}
