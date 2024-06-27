@@ -7,30 +7,34 @@
         'span[id^="gridRegistration_lblCourseClass_"]'
       ).textContent;
       const timeInfo = row.querySelectorAll("td")[4].innerHTML.split("<br>");
-
-      const dateRange = timeInfo[0].match(
-        /Từ (\d{2}\/\d{2}\/\d{4}) đến (\d{2}\/\d{2}\/\d{4})/
-      );
-      const startDate = dateRange[1];
-      const endDate = dateRange[2];
-      const schedulePattern = /Thứ (\d) tiết ([\d,]+)/g;
-      const schedules = {};
+      const dateRanges = [];
+      let currentDateRange = null;
+      
       timeInfo.forEach((info) => {
-        let match;
-        while ((match = schedulePattern.exec(info)) !== null) {
-          const day = parseInt(match[1]);
-          const periods = match[2].split(",").map(Number);
-          const start = Math.min(...periods);
-          const end = Math.max(...periods);
-          if (!schedules[day]) schedules[day] = [];
-          schedules[day].push(`${start}->${end}`);
+        const dateMatch = info.match(/Từ (\d{2}\/\d{2}\/\d{4}) đến (\d{2}\/\d{2}\/\d{4})/);
+        if (dateMatch) {
+          currentDateRange = { start: dateMatch[1], end: dateMatch[2], schedules: {} };
+          dateRanges.push(currentDateRange);
+        } else if (currentDateRange) {
+          const scheduleMatch = info.match(/Thứ (\d) tiết ([\d,]+)/);
+          if (scheduleMatch) {
+            const day = parseInt(scheduleMatch[1]);
+            const periods = scheduleMatch[2].split(",").map(Number);
+            const start = Math.min(...periods);
+            const end = Math.max(...periods);
+            if (!currentDateRange.schedules[day]) currentDateRange.schedules[day] = [];
+            currentDateRange.schedules[day].push(`${start}->${end}`);
+          }
         }
       });
-      Object.entries(schedules).forEach(([day, times]) => {
-        times.forEach((time) => {
-          result.add(
-            JSON.stringify([className, parseInt(day), startDate, endDate, time])
-          );
+
+      dateRanges.forEach((range) => {
+        Object.entries(range.schedules).forEach(([day, times]) => {
+          times.forEach((time) => {
+            result.add(
+              JSON.stringify([className, parseInt(day), range.start, range.end, time])
+            );
+          });
         });
       });
     });
@@ -72,7 +76,6 @@
     copyButton.style.color = "white";
     copyButton.style.border = "none";
     copyButton.style.transition = "background-color 0.3s";
-
     copyButton.onclick = function () {
       const textArea = document.createElement("textarea");
       const formattedData = data
@@ -83,12 +86,8 @@
       textArea.select();
       document.execCommand("copy");
       document.body.removeChild(textArea);
-
-      // Thay đổi màu và văn bản của nút
       copyButton.style.backgroundColor = "#45a049";
       copyButton.textContent = "Đã sao chép!";
-
-      // Đặt lại nút sau 2 giây
       setTimeout(() => {
         copyButton.style.backgroundColor = "#4CAF50";
         copyButton.textContent = "Sao chép";
